@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from Tkinter import *
 import sys
 import time
 import pygame
