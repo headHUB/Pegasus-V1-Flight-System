@@ -52,7 +52,7 @@ void setup()
   init_sensors();
   init_motors();
 }
-               double prop = 6,inte = 1,deriv = 3;
+               double prop = 6,inte = 0,deriv = 3;
 void loop()
 { 
    timer = millis();
@@ -100,7 +100,7 @@ void loop()
  */
 //-------------------------------------------------------------------------------------------------------------
 /*
- *                                   CALCULATING THE ERROR FOR BOTH POSITION AND ANGLE                     
+ *  CALCULATING THE ERROR                     
  */
 int error(int a, int b)
 {
