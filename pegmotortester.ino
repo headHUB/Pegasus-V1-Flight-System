@@ -62,9 +62,7 @@ void loop()
   long  MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
   //Serial.println(MP);
   int Throttle = 1300;
-  PitchControl(MP,Throttle);
-  RollControl(MR,Throttle);
-  YawControl(MY,Throttle);
+  FlightControl(Throttle,MP,MR,MY);
   //RunMotors(&Motor3,1100);
   timeBetFrames = millis() - timer;
   delay((timeStep*4000) - timeBetFrames); 
@@ -143,6 +141,13 @@ void init_motors()
 /*
  *   RUN MOTORS
  */
+void FlightControl(int v,int x,int y,int z)
+{
+  RunMotors(&Motor1,v+x+y+z);
+  RunMotors(&Motor2,v+x-y-z);
+  RunMotors(&Motor3,v-x-y+z);
+  RunMotors(&Motor4,v-x+y-z);
+}
 void PitchControl(int x,int y)
 {
   RunMotors(&Motor1,y+x);
@@ -191,9 +196,9 @@ int *Axis_xyz()
    //To dampen the pitch and roll angles a complementary filter is used
    angle_pitch_output = angle_pitch_output * 0.9 +  gpitch * 0.1;   //Take 90% of the output pitch value and add 10% of the raw pitch value
    angle_roll_output = angle_roll_output * 0.9 +  groll * 0.1;      //Take 90% of the output roll value and add 10% of the raw roll value
-   Axis[0] = gpitch*3.143 + 15;
-   Axis[1] = groll*3.143;
-   Axis[2] = gyaw*3.143;
+   Axis[0] = gpitch*2 + 15;
+   Axis[1] = groll*2;
+   Axis[2] = gyaw*2;
    return(Axis); 
 }
 

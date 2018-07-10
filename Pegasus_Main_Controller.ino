@@ -34,6 +34,20 @@ int Setpoint1, Input1;
 double p=0,i=0,d=0,cont=0;
 unsigned long timeBetFrames = 0;
 
+int ThrottleSetPoint = 0;
+int PitchSetPoint = 0;
+int RollSetPoint = 0;
+int YawSetPoint = 0;
+   
+int *xA;
+int *yA;
+int *zA;
+
+int Throttle; 
+
+long  MP,MR,MY;
+
+
 Servo Motor1,Motor2,Motor3,Motor4,Motor5,Motor6;
 MPU6050 mpu;
 BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
@@ -58,38 +72,36 @@ void loop()
    timer = millis();
   
    read_rc();
-  
-   int *x;
-   int *y;
-   int *z;
    
-   x = Axis_xyz();
-   y = Axis_xyz()+1;
-   z = Axis_xyz()+2;
+   xA = Axis_xyz();
+   yA = Axis_xyz()+1;
+   zA = Axis_xyz()+2;
    
    Serial.print("Pitch = \t");
-   Serial.print(*x);
+   Serial.print(*xA);
    Serial.print("\tRoll = \t");
-   Serial.print(*y);
+   Serial.print(*yA);
    Serial.print("\tYaw = \t");
-   Serial.print(*z);
+   Serial.print(*zA);
    Serial.println("");
    
-   a = error(*x,0);
-   b = error(*y,0);
-   c = error(*z,0);
+   a = error(*xA,PitchSetPoint);
+   b = error(*yA,RollSetPoint);
+   c = error(*zA,YawSetPoint);
+   
    aT += a;
    bT += b;
    cT += c;
    
-  long  MP = pid(a,aT,prop,inte,deriv,timeBetFrames);
-  long  MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
-  long  MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
-  int Throttle = ThrottleControl();
-  
-  PitchControl(MP,Throttle);
-  RollControl(MR,Throttle);
-  YawControl(MY,Throttle);
+  MP = pid(a,aT,prop,inte,deriv,timeBetFrames);
+  MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
+  MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
+  Throttle = ThrottleSetPoint;
+  //ThrottleControl();
+  FlightControl(Throttle,MP,MR,MY);
+  //PitchControl(MP,Throttle);
+  //RollControl(MR,Throttle);
+  //YawControl(MY,Throttle);
   
   timeBetFrames = millis() - timer;
   delay((timeStep*4000) - timeBetFrames); 
@@ -176,6 +188,13 @@ void init_motors()
 int ThrottleControl()
 {
   return(ch1[0]);
+}
+void FlightControl(int v,int x,int y,int z)
+{
+  RunMotors(&Motor1,v+x+y+z);
+  RunMotors(&Motor2,v+x-y-z);
+  RunMotors(&Motor3,v-x-y+z);
+  RunMotors(&Motor4,v-x+y-z);
 }
 void PitchControl(int x,int y)
 {
