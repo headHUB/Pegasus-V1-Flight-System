@@ -112,7 +112,7 @@ void loop()
   {
     setPPMValuesFromData();
     Serial.print("X-Axis: ");
-    Serial.println(data.X);
+    Serial.print(data.X);
     Serial.print("\tY-Axis:");
     Serial.print(data.Y);
     Serial.print("\tThrottle:");
@@ -164,6 +164,3 @@ ISR(TIMER1_COMPA_vect){
     }     
   }
 }
-
-
-
