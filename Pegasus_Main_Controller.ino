@@ -43,8 +43,6 @@ int *xA;
 int *yA;
 int *zA;
 
-int Throttle; 
-
 long  MP,MR,MY;
 
 
@@ -76,7 +74,7 @@ void loop()
    xA = Axis_xyz();
    yA = Axis_xyz()+1;
    zA = Axis_xyz()+2;
-   
+   /*
    Serial.print("Pitch = \t");
    Serial.print(*xA);
    Serial.print("\tRoll = \t");
@@ -84,7 +82,30 @@ void loop()
    Serial.print("\tYaw = \t");
    Serial.print(*zA);
    Serial.println("");
+   */
+   ThrottleSetPoint = ThrottleControl();
    
+   if(ThrottleSetPoint > 1050)
+   {
+      PitchSetPoint = map(ch[3],1008,2008,90,-90);
+      RollSetPoint = map(ch[4],1008,2008,90,-90);
+      YawSetPoint = map(ch[2],1076,1936,-90,90)-4;
+   }
+   else
+   {
+      PitchSetPoint = 0;
+      RollSetPoint =0;
+      YawSetPoint =0;
+   }
+   /*
+   Serial.print("Pitch = \t");
+   Serial.print(PitchSetPoint);
+   Serial.print("\tRoll = \t");
+   Serial.print(RollSetPoint);
+   Serial.print("\tYaw = \t");
+   Serial.print(YawSetPoint);
+   Serial.println("");
+   */
    a = error(*xA,PitchSetPoint);
    b = error(*yA,RollSetPoint);
    c = error(*zA,YawSetPoint);
@@ -93,18 +114,14 @@ void loop()
    bT += b;
    cT += c;
    
-  MP = pid(a,aT,prop,inte,deriv,timeBetFrames);
-  MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
-  MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
-  Throttle = ThrottleSetPoint;
-  //ThrottleControl();
-  FlightControl(Throttle,MP,MR,MY);
-  //PitchControl(MP,Throttle);
-  //RollControl(MR,Throttle);
-  //YawControl(MY,Throttle);
+   MP = pid(a,aT,prop,inte,deriv,timeBetFrames);
+   MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
+   MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
+   Serial.println(MR);
+   FlightControl(ThrottleSetPoint,MP,MR,MY);
   
-  timeBetFrames = millis() - timer;
-  delay((timeStep*4000) - timeBetFrames); 
+   timeBetFrames = millis() - timer;
+   delay((timeStep*4500) - timeBetFrames); 
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -133,7 +150,20 @@ double pid(int InputError,int InputErrorTotal,double Kp,double Ki,double Kd,unsi
     prevError = InputError;
     
     cont = p + i + d;
-    return(cont);
+    if(cont > 500 )
+    {
+      cont = 500;
+      return(cont);
+    }
+    else if(cont < -500)
+    {
+      cont = -500;
+      return(cont);
+    }
+    else
+    {
+      return(cont);
+    }
 }
 /*
  *                                    CONTROLLING THE MOTORS
@@ -187,7 +217,8 @@ void init_motors()
  */
 int ThrottleControl()
 {
-  return(ch1[0]);
+  ch[1] =  map(ch[1],1080,1970,1000,2000);
+  return(ch[1]);
 }
 void FlightControl(int v,int x,int y,int z)
 {
