@@ -1,8 +1,20 @@
+//--------------------------------------------------------------------------------------------------------------------
+/*
+ *                                            CLASS HEADER FILES
+ */
+//--------------------------------------------------------------------------------------------------------------------
+
 #include <Wire.h>
 #include <Servo.h>
 #include <BME280I2C.h>
 #include <MPU6050.h>
 
+//---------------------------------------------------------------------------------------------------------------
+/*
+ *                                    VARIABLE/CONSTANT DEFINITIONS
+ */
+//---------------------------------------------------------------------------------------------------------------
+ 
 long loop_timer;
 unsigned long timer = 0;
 float timeStep = 0.01;
@@ -45,11 +57,22 @@ int *zA;
 
 long  MP,MR,MY;
 
+//--------------------------------------------------------------------------------------------------------------------
+/*
+ *                                         CLASS OBJECT INSTANTIATIONS
+ */
+//--------------------------------------------------------------------------------------------------------------------
 
 Servo Motor1,Motor2,Motor3,Motor4,Motor5,Motor6;
 MPU6050 mpu;
 BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
                   // Oversampling = pressure ×1, temperature ×1, humidity ×1, filter off,
+
+//--------------------------------------------------------------------------------------------------------------
+/*
+ *                                   COMPONENT INITIALISATION LOOP 
+ */
+//--------------------------------------------------------------------------------------------------------------
 
 void setup() 
 {
@@ -64,6 +87,13 @@ void setup()
   init_sensors();
   init_motors();
 }
+
+//------------------------------------------------------------------------------------------------------------------
+/*
+ *                                           MAIN CONTROL LOOP
+ */
+//------------------------------------------------------------------------------------------------------------------
+
                double prop = 6,inte = 0,deriv = 3;
 void loop()
 { 
@@ -74,7 +104,7 @@ void loop()
    xA = Axis_xyz();
    yA = Axis_xyz()+1;
    zA = Axis_xyz()+2;
-   /*
+   
    Serial.print("Pitch = \t");
    Serial.print(*xA);
    Serial.print("\tRoll = \t");
@@ -82,7 +112,7 @@ void loop()
    Serial.print("\tYaw = \t");
    Serial.print(*zA);
    Serial.println("");
-   */
+   
    ThrottleSetPoint = ThrottleControl();
    
    if(ThrottleSetPoint > 1050)
@@ -117,11 +147,12 @@ void loop()
    MP = pid(a,aT,prop,inte,deriv,timeBetFrames);
    MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
    MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
-   Serial.println(MR);
-   FlightControl(ThrottleSetPoint,MP,MR,MY);
+   
+   init_motors();
+   //FlightControl(ThrottleSetPoint,MP,MR,MY);
   
    timeBetFrames = millis() - timer;
-   delay((timeStep*4500) - timeBetFrames); 
+   delay((timeStep*4000) - timeBetFrames); 
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
