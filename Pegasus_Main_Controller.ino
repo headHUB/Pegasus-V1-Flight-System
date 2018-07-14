@@ -46,7 +46,12 @@ int Setpoint1, Input1;
 double p=0,i=0,d=0,cont=0;
 unsigned long timeBetFrames = 0;
 
-int ThrottleSetPoint = 0;
+int *ThrottleSetPoint;
+int *ThrottleSetPoint1;
+int *ThrottleSetPoint2;
+int *ThrottleSetPoint3;
+int *ThrottleSetPoint4;
+
 int PitchSetPoint = 0;
 int RollSetPoint = 0;
 int YawSetPoint = 0;
@@ -113,13 +118,13 @@ void loop()
    Serial.print(*zA);
    Serial.println("");
    
-   ThrottleSetPoint = ThrottleControl();
+   ThrottleSetPoint =  ThrottleControl();
    
-   if(ThrottleSetPoint > 1050)
+   if(*ThrottleSetPoint > 1050)
    {
-      PitchSetPoint = map(ch[3],1008,2008,90,-90);
-      RollSetPoint = map(ch[4],1008,2008,90,-90);
-      YawSetPoint = map(ch[2],1076,1936,-90,90)-4;
+      PitchSetPoint = map(ch[3],1008,2008,30,-30);
+      RollSetPoint = map(ch[4],1008,2008,30,-30);
+      YawSetPoint = map(ch[2],1076,1936,-30,30)-4;
    }
    else
    {
@@ -127,15 +132,7 @@ void loop()
       RollSetPoint =0;
       YawSetPoint =0;
    }
-   /*
-   Serial.print("Pitch = \t");
-   Serial.print(PitchSetPoint);
-   Serial.print("\tRoll = \t");
-   Serial.print(RollSetPoint);
-   Serial.print("\tYaw = \t");
-   Serial.print(YawSetPoint);
-   Serial.println("");
-   */
+   
    a = error(*xA,PitchSetPoint);
    b = error(*yA,RollSetPoint);
    c = error(*zA,YawSetPoint);
@@ -148,11 +145,10 @@ void loop()
    MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
    MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
    
-   init_motors();
-   //FlightControl(ThrottleSetPoint,MP,MR,MY);
-  
+   FlightControl(*ThrottleSetPoint,MP,MR,MY);
+   
    timeBetFrames = millis() - timer;
-   delay((timeStep*4000) - timeBetFrames); 
+   delay((timeStep*7500) - timeBetFrames); 
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -181,14 +177,14 @@ double pid(int InputError,int InputErrorTotal,double Kp,double Ki,double Kd,unsi
     prevError = InputError;
     
     cont = p + i + d;
-    if(cont > 500 )
+    if(cont > 150 )
     {
-      cont = 500;
+      cont = 150;
       return(cont);
     }
-    else if(cont < -500)
+    else if(cont < -150)
     {
-      cont = -500;
+      cont = -150;
       return(cont);
     }
     else
@@ -236,27 +232,91 @@ void init_motors()
   RunMotors(&Motor2,1000);
   RunMotors(&Motor3,1000);
   RunMotors(&Motor4,1000);
-  RunMotors(&Motor6,1000);
+  RunMotors(&Motor5,1000);
   RunMotors(&Motor6,1000);
   delay(5000);
-  RunMotors(&Motor3,1100);
   mpu.calibrateGyro();
   delay(200);
 }
 /*
  *   RUN MOTORS
  */
-int ThrottleControl()
+int *ThrottleControl()
 {
-  ch[1] =  map(ch[1],1080,1970,1000,2000);
-  return(ch[1]);
+  static int val[5];
+  val[0] =  map(ch[1],1080,1970,1000,2000);
+  val[1] =  map(ch[1],1080,1970,1050,2000);
+  val[2] =  map(ch[1],1080,1970,1050,2000);
+  val[3] =  map(ch[1],1080,1970,1060,2000);
+  val[4] =  map(ch[1],1080,1970,1050,2000);
+  return(val);
 }
 void FlightControl(int v,int x,int y,int z)
 {
-  RunMotors(&Motor1,v+x+y+z);
-  RunMotors(&Motor2,v+x-y-z);
-  RunMotors(&Motor3,v-x-y+z);
-  RunMotors(&Motor4,v-x+y-z);
+  int Run1 = v+x+y+z;
+  int Run2 = v+x-y-z;
+  int Run3 = v-x-y+z;
+  int Run4 = v-x+y-z;
+  
+  if (Run1 > 2000)
+  {
+    Run1 = 2000;
+    RunMotors(&Motor1,Run1);
+  }
+  else if(Run1 < 1050)
+  {
+    Run1 = 1050;
+    RunMotors(&Motor1,Run1);
+  }
+  else
+  {
+    RunMotors(&Motor1,Run1);
+  }
+  
+  if (Run2 > 2000)
+  {
+    Run2 = 2000;
+    RunMotors(&Motor2,Run2);
+  }
+  else if(Run2 < 1050)
+  {
+    Run2 = 1050;
+    RunMotors(&Motor2,Run2);
+  }
+  else
+  {
+    RunMotors(&Motor2,Run2);
+  }
+  
+  if (Run3 > 2000)
+  {
+    Run3 = 2000;
+    RunMotors(&Motor3,Run3);
+  }
+  else if(Run3 < 1050)
+  {
+    Run3 = 1050;
+    RunMotors(&Motor3,Run3);
+  }
+  else
+  {
+    RunMotors(&Motor3,Run3);
+  }
+  
+  if (Run4 > 2000)
+  {
+    Run4 = 2000;
+    RunMotors(&Motor4,Run4);
+  }
+  else if(Run4 < 1050)
+  {
+    Run4 = 1050;
+    RunMotors(&Motor4,Run4);
+  }
+  else
+  {
+    RunMotors(&Motor4,Run4);
+  }
 }
 void PitchControl(int x,int y)
 {
