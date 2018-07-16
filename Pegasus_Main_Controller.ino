@@ -17,6 +17,7 @@
  
 long loop_timer;
 unsigned long timer = 0;
+unsigned long shutdowntime;
 float timeStep = 0.01;
 
 float gpitch = 0, groll = 0, gyaw = 0;
@@ -119,20 +120,39 @@ void loop()
    Serial.println("");
    
    ThrottleSetPoint =  ThrottleControl();
-   
    if(*ThrottleSetPoint > 1050)
    {
       PitchSetPoint = map(ch[3],1008,2008,30,-30);
       RollSetPoint = map(ch[4],1008,2008,30,-30);
       YawSetPoint = map(ch[2],1076,1936,-30,30)-4;
+      shutdowntime = 0;
    }
    else
    {
       PitchSetPoint = 0;
       RollSetPoint =0;
       YawSetPoint =0;
+      
+      shutdowntime += (millis()- timer)*10;
+      Serial.println(shutdowntime);
+      if( shutdowntime > 2000)
+      {
+        while(1)
+        {
+          read_rc();
+          if(ch[4] > 1050)
+          {
+            Serial.println(ch[4]);
+            FullStop();
+          }
+          else
+          {
+            break;
+          }
+        }
+      }
    }
-   
+
    a = error(*xA,PitchSetPoint);
    b = error(*yA,RollSetPoint);
    c = error(*zA,YawSetPoint);
@@ -250,6 +270,13 @@ int *ThrottleControl()
   val[3] =  map(ch[1],1080,1970,1060,2000);
   val[4] =  map(ch[1],1080,1970,1050,2000);
   return(val);
+}
+void FullStop()
+{
+  RunMotors(&Motor1,1000);
+  RunMotors(&Motor2,1000);
+  RunMotors(&Motor3,1000);
+  RunMotors(&Motor4,1000);
 }
 void FlightControl(int v,int x,int y,int z)
 {
