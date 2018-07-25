@@ -137,19 +137,6 @@ void loop()
       Serial.println(shutdowntime);
       if( shutdowntime > 2000)
       {
-        while(1)
-        {
-          read_rc();
-          if(ch[4] > 1050)
-          {
-            Serial.println(ch[4]);
-            FullStop();
-          }
-          else
-          {
-            break;
-          }
-        }
       }
    }
 
@@ -449,7 +436,7 @@ int *Axis_xyz()
 /*
  *   CALCULATING THE ALTITUDE FROM BAROMETER
  */
-double Alitude()
+double Altitude()
 {
    float temp(NAN), hum(NAN), pres(NAN);
    double T = temp + 273;
