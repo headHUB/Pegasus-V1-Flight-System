@@ -137,6 +137,7 @@ void loop()
       Serial.println(shutdowntime);
       if( shutdowntime > 2000)
       {
+        Serial.println("Stop Flying");
       }
    }
 
