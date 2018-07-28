@@ -414,8 +414,8 @@ int *Axis_xyz()
    
    if(set_gyro_angles)
    {                                                 //If the IMU is already started
-     gpitch = gpitch * 0.999 + Pitch * 0.001;     //Correct the drift of the gyro pitch angle with the accelerometer pitch angle
-     groll = groll * 0.999 + Roll * 0.001;        //Correct the drift of the gyro roll angle with the accelerometer roll angle
+     gpitch = gpitch * 0.985 + Pitch * 0.015;     //Correct the drift of the gyro pitch angle with the accelerometer pitch angle
+     groll = groll * 0.985 + Roll * 0.015;        //Correct the drift of the gyro roll angle with the accelerometer roll angle
    }
    else
    {                                                                //At first start
@@ -428,9 +428,9 @@ int *Axis_xyz()
    angle_pitch_output = angle_pitch_output * 0.9 +  gpitch * 0.1;   //Take 90% of the output pitch value and add 10% of the raw pitch value
    angle_roll_output = angle_roll_output * 0.9 +  groll * 0.1;      //Take 90% of the output roll value and add 10% of the raw roll value
    
-   Axis[0] = gpitch*3.143;
-   Axis[1] = groll*3.143;
-   Axis[2] = gyaw*3.143;
+   Axis[0] = gpitch;
+   Axis[1] = groll;
+   Axis[2] = gyaw;
    
    return(Axis); 
 }
