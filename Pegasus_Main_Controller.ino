@@ -100,7 +100,7 @@ void setup()
  */
 //------------------------------------------------------------------------------------------------------------------
 
-               double prop = 6,inte = 0,deriv = 3;
+                                    double prop = 6,inte = 0,deriv = 3;
 void loop()
 { 
    timer = millis();
@@ -156,7 +156,7 @@ void loop()
    FlightControl(*ThrottleSetPoint,MP,MR,MY);
    
    timeBetFrames = millis() - timer;
-   delay((timeStep*7500) - timeBetFrames); 
+   delay((timeStep*4000) - timeBetFrames); 
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -459,7 +459,7 @@ double Altitude()
 void init_sensors()
 {
   while(!Serial) {} // Wait
-  
+  Serial.println("");
   while(!bme.begin())
   {
     Serial.println("Could not find BME280 sensor!");
