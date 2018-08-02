@@ -100,69 +100,96 @@ void setup()
  */
 //------------------------------------------------------------------------------------------------------------------
 
-                                    double prop = 6,inte = 0,deriv = 3;
 void loop()
 { 
-   timer = millis();
+  MainLoop();
   
-   read_rc();
-   
-   xA = Axis_xyz();
-   yA = Axis_xyz()+1;
-   zA = Axis_xyz()+2;
-   
-   Serial.print("Pitch = \t");
-   Serial.print(*xA);
-   Serial.print("\tRoll = \t");
-   Serial.print(*yA);
-   Serial.print("\tYaw = \t");
-   Serial.print(*zA);
-   Serial.println("");
-   
-   ThrottleSetPoint =  ThrottleControl();
-   if(*ThrottleSetPoint > 1050)
-   {
-      PitchSetPoint = map(ch[3],1008,2008,30,-30);
-      RollSetPoint = map(ch[4],1008,2008,30,-30);
-      YawSetPoint = map(ch[2],1076,1936,-30,30)-4;
-      shutdowntime = 0;
-   }
-   else
-   {
-      PitchSetPoint = 0;
-      RollSetPoint =0;
-      YawSetPoint =0;
-      
-      shutdowntime += (millis()- timer)*10;
-      Serial.println(shutdowntime);
-      if( shutdowntime > 2000)
-      {
-        Serial.println("Stop Flying");
-      }
-   }
-
-   a = error(*xA,PitchSetPoint);
-   b = error(*yA,RollSetPoint);
-   c = error(*zA,YawSetPoint);
-   
-   aT += a;
-   bT += b;
-   cT += c;
-   
-   MP = pid(a,aT,prop,inte,deriv,timeBetFrames);
-   MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
-   MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
-   
-   FlightControl(*ThrottleSetPoint,MP,MR,MY);
-   
-   timeBetFrames = millis() - timer;
-   delay((timeStep*4000) - timeBetFrames); 
+  FullStop();
+  
+  read_rc();
+  
+  if (ch[2] < 1100)
+  {
+    MainLoop();
+  }
+  else
+  {
+    FullStop();
+  }
+  Serial.println("Full Stop");
 }
+
 //-------------------------------------------------------------------------------------------------------------
 /*
  *                                                 FUNCTIONS
  */
 //-------------------------------------------------------------------------------------------------------------
+/*
+ *   MAIN FLIGHT FUNCTIONALITY                    
+ */
+ double prop = 6,inte = 0,deriv = 3;
+ void MainLoop()
+ {
+  while(1)
+  {
+    timer = millis();
+  
+    read_rc();
+   
+    xA = Axis_xyz();
+    yA = Axis_xyz()+1;
+    zA = Axis_xyz()+2;
+   
+    Serial.print("Pitch = \t");
+    Serial.print(*xA);
+    Serial.print("\tRoll = \t");
+    Serial.print(*yA);
+    Serial.print("\tYaw = \t");
+    Serial.print(*zA);
+    Serial.println("");
+   
+    ThrottleSetPoint =  ThrottleControl();
+    if(*ThrottleSetPoint > 1050)
+    {
+        PitchSetPoint = map(ch[3],1008,2008,30,-30);
+        RollSetPoint = map(ch[4],1008,2008,30,-30);
+        YawSetPoint = map(ch[2],1076,1936,-30,30)-4;
+        shutdowntime = 0;
+    }
+    else
+    {
+        PitchSetPoint = 0;
+        RollSetPoint =0;
+        YawSetPoint =0;
+      
+        shutdowntime += (millis()- timer)*10;
+        Serial.println(shutdowntime);
+        if( shutdowntime > 2000)
+        {
+          Serial.println("Stop Flying");
+          break;
+        }
+    }
+
+    a = error(*xA,PitchSetPoint);
+    b = error(*yA,RollSetPoint);
+    c = error(*zA,YawSetPoint);
+   
+    aT += a;
+    bT += b;
+    cT += c;
+   
+    MP = pid(a,aT,prop,inte,deriv,timeBetFrames);
+    MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
+    MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
+   
+    FlightControl(*ThrottleSetPoint,MP,MR,MY);
+   
+    timeBetFrames = millis() - timer;
+    delay((timeStep*4000) - timeBetFrames); 
+  }
+ }
+ 
 /*
  *  CALCULATING THE ERROR                     
  */
@@ -173,6 +200,7 @@ int error(int a, int b)
     c = a - b;
     return(c);
 }
+
 /*
  *   CALCULATING THE PID GAIN VALUES
  */
@@ -200,6 +228,7 @@ double pid(int InputError,int InputErrorTotal,double Kp,double Ki,double Kd,unsi
       return(cont);
     }
 }
+
 /*
  *                                    CONTROLLING THE MOTORS
  */
@@ -221,6 +250,7 @@ void RunMotors(Servo* Motor,int Gain)
     }
     Motor->writeMicroseconds(x);
 }
+
 /*
  *                                    INITIALISING THE MOTORS
  */
@@ -246,6 +276,7 @@ void init_motors()
   mpu.calibrateGyro();
   delay(200);
 }
+
 /*
  *   RUN MOTORS
  */
@@ -484,6 +515,7 @@ void init_sensors()
        Serial.println("Found UNKNOWN sensor! Error!");
   }
 }
+
 /*
  *   READ PPM VALUES FROM PIN 2
  */
