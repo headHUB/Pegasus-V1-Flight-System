@@ -111,19 +111,6 @@ void loop()
   else
   {
     setPPMValuesFromData();
-    Serial.print("X-Axis: ");
-    Serial.print(data.X);
-    Serial.print("\tY-Axis:");
-    Serial.print(data.Y);
-    Serial.print("\tThrottle:");
-    Serial.print(data.T);
-    Serial.print("\tYaw:");
-    Serial.print(data.YA);
-    Serial.print("\tRudder:");
-    Serial.print(data.R);
-    Serial.print("\tButtons:");
-    Serial.print(data.H);
-    Serial.print("\t\n");
   }
 }
 
