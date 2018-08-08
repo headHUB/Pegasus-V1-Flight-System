@@ -63,6 +63,7 @@ int *zA;
 
 long  MP,MR,MY;
 
+bool breakout = 0;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
@@ -104,12 +105,13 @@ void loop()
 { 
   MainLoop();
   
-  FullStop();
-  
   read_rc();
   
   if (ch[2] < 1100)
   {
+    breakout = 0;
+    Serial.println("Starting...");
+    delay(1000);
     MainLoop();
   }
   else
@@ -128,9 +130,10 @@ void loop()
  *   MAIN FLIGHT FUNCTIONALITY                    
  */
  double prop = 6,inte = 0,deriv = 3;
+ 
  void MainLoop()
  {
-  while(1)
+  while(breakout != 1)
   {
     timer = millis();
   
@@ -139,7 +142,7 @@ void loop()
     xA = Axis_xyz();
     yA = Axis_xyz()+1;
     zA = Axis_xyz()+2;
-   
+   /*
     Serial.print("Pitch = \t");
     Serial.print(*xA);
     Serial.print("\tRoll = \t");
@@ -147,7 +150,7 @@ void loop()
     Serial.print("\tYaw = \t");
     Serial.print(*zA);
     Serial.println("");
-   
+   */
     ThrottleSetPoint =  ThrottleControl();
     if(*ThrottleSetPoint > 1050)
     {
@@ -167,7 +170,7 @@ void loop()
         if( shutdowntime > 2000)
         {
           Serial.println("Stop Flying");
-          break;
+          breakout = 1;
         }
     }
 
