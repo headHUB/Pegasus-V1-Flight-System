@@ -14,73 +14,80 @@
  *                                    VARIABLE/CONSTANT DEFINITIONS
  */
 //---------------------------------------------------------------------------------------------------------------
- 
+/*
+ * TIMERS
+ */
 long loop_timer;
 unsigned long timer = 0;
 unsigned long shutdowntime;
 float timeStep = 0.01;
-
+bool breakout = 0;
+/*
+ * IMU VALUES
+ */
 float gpitch = 0, groll = 0, gyaw = 0;
 float angle_pitch_output, angle_roll_output;
 boolean set_gyro_angles;
-
+/*
+ * BAROMETER VALUES
+ */
 double R = 8.3144598;
 double g = 9.80665;
 double M = 0.0289644;
 double Pb = 101325;
 double num=0,dnum=0,h=0,hb = 0;
-
+/*
+ * RECEIVER VALUES
+ */
 unsigned long int aa,bb,cc;
 int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
-
-// Motor connection pins
+/*
+ * MOTOR CONNECTIONS
+ */
 int M1 = 3;
 int M2 = 5;
 int M3 = 6;
 int M4 = 9;
 int M5 = 10;
 int M6 = 11;
-
+/*
+ * PID VARIABLES
+ */
 int prevError  = 0;
 int a  = 0,aT  = 0,b  = 0,bT  = 0,c  = 0,cT  = 0;
 int Setpoint1, Input1;
+int PitchSetPoint = 0;
+int RollSetPoint = 0;
+int YawSetPoint = 0;
+
 double p=0,i=0,d=0,cont=0;
+
 unsigned long timeBetFrames = 0;
 
+long  MP,MR,MY;
+
+int *xA;
+int *yA;
+int *zA;
 int *ThrottleSetPoint;
 int *ThrottleSetPoint1;
 int *ThrottleSetPoint2;
 int *ThrottleSetPoint3;
 int *ThrottleSetPoint4;
-
-int PitchSetPoint = 0;
-int RollSetPoint = 0;
-int YawSetPoint = 0;
-   
-int *xA;
-int *yA;
-int *zA;
-
-long  MP,MR,MY;
-
-bool breakout = 0;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
  */
 //--------------------------------------------------------------------------------------------------------------------
-
 Servo Motor1,Motor2,Motor3,Motor4,Motor5,Motor6;
 MPU6050 mpu;
 BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
                   // Oversampling = pressure ×1, temperature ×1, humidity ×1, filter off,
-
 //--------------------------------------------------------------------------------------------------------------
 /*
  *                                   COMPONENT INITIALISATION LOOP 
  */
 //--------------------------------------------------------------------------------------------------------------
-
 void setup() 
 {
   Serial.begin(9600);
@@ -94,13 +101,11 @@ void setup()
   init_sensors();
   init_motors();
 }
-
 //------------------------------------------------------------------------------------------------------------------
 /*
  *                                           MAIN CONTROL LOOP
  */
 //------------------------------------------------------------------------------------------------------------------
-
 void loop()
 { 
   MainLoop();
@@ -120,17 +125,15 @@ void loop()
     Serial.println("Full Stop");
   } 
 }
-
 //-------------------------------------------------------------------------------------------------------------
 /*
  *                                                 FUNCTIONS
  */
 //-------------------------------------------------------------------------------------------------------------
 /*
- *   MAIN FLIGHT FUNCTIONALITY                    
+ *   MAIN FLIGHT FUNCTIONALITY                        PID GAINS             
  */
- double prop = 6,inte = 0,deriv = 3;
- 
+                                            double prop = 6,inte = 1,deriv = 3;
  void MainLoop()
  {
   while(breakout != 1)
@@ -192,7 +195,6 @@ void loop()
     delay((timeStep*4000) - timeBetFrames); 
   }
  }
- 
 /*
  *  CALCULATING THE ERROR                     
  */
@@ -203,7 +205,6 @@ int error(int a, int b)
     c = a - b;
     return(c);
 }
-
 /*
  *   CALCULATING THE PID GAIN VALUES
  */
@@ -231,9 +232,8 @@ double pid(int InputError,int InputErrorTotal,double Kp,double Ki,double Kd,unsi
       return(cont);
     }
 }
-
 /*
- *                                    CONTROLLING THE MOTORS
+ * CONTROLLING THE MOTORS
  */
 void RunMotors(Servo* Motor,int Gain)
 {
@@ -253,9 +253,8 @@ void RunMotors(Servo* Motor,int Gain)
     }
     Motor->writeMicroseconds(x);
 }
-
 /*
- *                                    INITIALISING THE MOTORS
+ * INITIALISING THE MOTORS
  */
 void init_motors()
 {
@@ -367,6 +366,9 @@ void FlightControl(int v,int x,int y,int z)
     RunMotors(&Motor4,Run4);
   }
 }
+/*
+ *  MOTION TEST FUNCTIONS
+ */
 void PitchControl(int x,int y)
 {
   RunMotors(&Motor1,y+x);
@@ -431,7 +433,26 @@ void AltitudeControl(int al,double x)
     }
 }
 /*
- *   CALCULATING THE AXIS VALUES FROM MPU
+ *   CALCULATING THE ALTITUDE FROM BAROMETER
+ */
+double Altitude()
+{
+   float temp(NAN), hum(NAN), pres(NAN);
+   double T = temp + 273;
+
+   BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
+   BME280::PresUnit presUnit(BME280::PresUnit_Pa);
+
+   bme.read(pres, temp, hum, tempUnit, presUnit);
+   
+   num = log(pres/Pb) * T * R;
+   dnum = g * M * -1;
+   h = (num/dnum)+ hb;
+   
+   return(h);
+}
+/*
+ *   CALCULATING THE VALUES FROM IMU
  */
 int *Axis_xyz()
 {
@@ -469,25 +490,6 @@ int *Axis_xyz()
    return(Axis); 
 }
 /*
- *   CALCULATING THE ALTITUDE FROM BAROMETER
- */
-double Altitude()
-{
-   float temp(NAN), hum(NAN), pres(NAN);
-   double T = temp + 273;
-
-   BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
-   BME280::PresUnit presUnit(BME280::PresUnit_Pa);
-
-   bme.read(pres, temp, hum, tempUnit, presUnit);
-   
-   num = log(pres/Pb) * T * R;
-   dnum = g * M * -1;
-   h = (num/dnum)+ hb;
-   
-   return(h);
-}
-/*
  *   INITIALISING THE SENSORS
  */
 void init_sensors()
@@ -518,15 +520,14 @@ void init_sensors()
        Serial.println("Found UNKNOWN sensor! Error!");
   }
 }
-
 /*
  *   READ PPM VALUES FROM PIN 2
  */
-void read_me() 
-{
   //this code reads value from RC reciever from PPM pin (Pin 2 or 3)
   //this code gives channel values from 0-1000 values 
   //    -: ABHILASH :-    //
+void read_me() 
+{
   int j;
   
   aa=micros();   //store time value a when pin value falling
@@ -544,7 +545,7 @@ void read_me()
     ii=0;
   }
 }//copy store all values from temporary array another array after 15 reading 
- 
+
 void read_rc()
 {
   int i,j,k=0;
