@@ -145,15 +145,7 @@ void loop()
     xA = Axis_xyz();
     yA = Axis_xyz()+1;
     zA = Axis_xyz()+2;
-   /*
-    Serial.print("Pitch = \t");
-    Serial.print(*xA);
-    Serial.print("\tRoll = \t");
-    Serial.print(*yA);
-    Serial.print("\tYaw = \t");
-    Serial.print(*zA);
-    Serial.println("");
-   */
+   
     ThrottleSetPoint =  ThrottleControl();
     if(*ThrottleSetPoint > 1050)
     {
@@ -192,7 +184,7 @@ void loop()
     FlightControl(*ThrottleSetPoint,MP,MR,MY);
    
     timeBetFrames = millis() - timer;
-    delay((timeStep*4000) - timeBetFrames); 
+    delay((timeStep*6000) - timeBetFrames); 
   }
  }
 /*
