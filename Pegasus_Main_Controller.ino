@@ -133,7 +133,7 @@ void loop()
 /*
  *   MAIN FLIGHT FUNCTIONALITY                        PID GAINS             
  */
-                                            double prop = 6,inte = 1,deriv = 3;
+                                            double prop = 6,inte = 1,deriv = 6;
  void MainLoop()
  {
   while(breakout != 1)
@@ -145,7 +145,7 @@ void loop()
     xA = Axis_xyz();
     yA = Axis_xyz()+1;
     zA = Axis_xyz()+2;
-   
+    Serial.println("1");
     ThrottleSetPoint =  ThrottleControl();
     if(*ThrottleSetPoint > 1050)
     {
@@ -184,7 +184,7 @@ void loop()
     FlightControl(*ThrottleSetPoint,MP,MR,MY);
    
     timeBetFrames = millis() - timer;
-    delay((timeStep*6000) - timeBetFrames); 
+    delay((timeStep*1000) - timeBetFrames); 
   }
  }
 /*
@@ -209,14 +209,14 @@ double pid(int InputError,int InputErrorTotal,double Kp,double Ki,double Kd,unsi
     prevError = InputError;
     
     cont = p + i + d;
-    if(cont > 150 )
+    if(cont > 250 )
     {
-      cont = 150;
+      cont = 250;
       return(cont);
     }
-    else if(cont < -150)
+    else if(cont < -250)
     {
-      cont = -150;
+      cont = -250;
       return(cont);
     }
     else
